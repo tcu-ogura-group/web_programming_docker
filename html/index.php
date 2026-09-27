@@ -19,10 +19,10 @@ try {
 <!doctype html>
 <meta charset="utf-8">
 <title>ssp container status</title>
-<h1>コンテナ分離構成 動作確認</h1>
+<h1>ssp 動作確認</h1>
 <ul>
-  <li>nginx  : <?= htmlspecialchars($_SERVER['SERVER_SOFTWARE'] ?? '?') ?></li>
-  <li>php-fpm: <?= PHP_VERSION ?> (<?= gethostname() ?>)</li>
+  <li>apache : <?= htmlspecialchars($_SERVER['SERVER_SOFTWARE'] ?? '?') ?></li>
+  <li>php    : <?= PHP_VERSION ?> (<?= php_sapi_name() ?> / <?= gethostname() ?>)</li>
   <li>mysql  : <?= htmlspecialchars($dbStatus) ?></li>
 </ul>
 <p><a href="/~sspuser/">/~sspuser/ を開く</a></p>
