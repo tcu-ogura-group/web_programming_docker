@@ -1,0 +1,49 @@
+# nginx / php-fpm / mysql を 3 コンテナに分離した構成
+# 元の単一コンテナ版 (supervisor で全部起動) は ./Dockerfile.origin に残してあります。
+
+name: ssp
+
+services:
+  web:
+    image: nginx:1.29-alpine
+    ports:
+      - "127.0.0.1:${HTTP_PORT:-10800}:80"
+    environment:
+      TZ: ${TZ:-Asia/Tokyo}
+    volumes:
+      - ./web/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./web/fastcgi-php.conf:/etc/nginx/snippets/fastcgi-php.conf:ro
+      # php コンテナと「同じパス」で同じファイルを見せる必要がある
+      - ./html:/var/www/html
+      - ./homes/sspuser/public_html:/home/sspuser/public_html
+    depends_on:
+      - php
+    restart: unless-stopped
+
+  php:
+    build: ./php
+    environment:
+      TZ: ${TZ:-Asia/Tokyo}
+      DB_HOST: db
+      DB_NAME: ${MYSQL_DATABASE:-sspdb}
+      DB_USER: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dbpass}
+    volumes:
+      - ./html:/var/www/html
+      - ./homes/sspuser/public_html:/home/sspuser/public_html
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    build: ./db
+    environment:
+      TZ: ${TZ:-Asia/Tokyo}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dbpass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-sspdb}
+    volumes:
+      - db-data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  db-data:
