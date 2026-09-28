@@ -1,15 +1,16 @@
 # nginx / php-fpm / mysql を 3 コンテナに分離した構成
 # 元の単一コンテナ版 (supervisor で全部起動) は ./Dockerfile.origin に残してあります。
+# 設定値は .env に集約 (雛形は .env.example)。
 
 name: ssp
 
 services:
   web:
-    image: nginx:1.29-alpine
+    image: ${NGINX_IMAGE}
     ports:
-      - "127.0.0.1:${HTTP_PORT:-10800}:80"
+      - "${HTTP_BIND}:${HTTP_PORT}:80"
     environment:
-      TZ: ${TZ:-Asia/Tokyo}
+      TZ: ${TZ}
     volumes:
       - ./web/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./web/fastcgi-php.conf:/etc/nginx/snippets/fastcgi-php.conf:ro
@@ -21,13 +22,17 @@ services:
     restart: unless-stopped
 
   php:
-    build: ./php
+    build:
+      context: ./php
+      args:
+        PHP_IMAGE: ${PHP_IMAGE}
+        TZ: ${TZ}
     environment:
-      TZ: ${TZ:-Asia/Tokyo}
-      DB_HOST: db
-      DB_NAME: ${MYSQL_DATABASE:-sspdb}
-      DB_USER: root
-      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dbpass}
+      TZ: ${TZ}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - ./html:/var/www/html
       - ./homes/sspuser/public_html:/home/sspuser/public_html
@@ -36,11 +41,15 @@ services:
     restart: unless-stopped
 
   db:
-    build: ./db
+    build:
+      context: ./db
+      args:
+        MYSQL_IMAGE: ${MYSQL_IMAGE}
+        TZ: ${TZ}
     environment:
-      TZ: ${TZ:-Asia/Tokyo}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dbpass}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-sspdb}
+      TZ: ${TZ}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
     volumes:
       - db-data:/var/lib/mysql
     restart: unless-stopped

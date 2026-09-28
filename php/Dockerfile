@@ -1,10 +1,12 @@
-FROM php:8.5-fpm
+ARG PHP_IMAGE
+FROM ${PHP_IMAGE}
 
 # 公式 php-fpm イメージは既に
 #   listen = 9000 / daemonize = no / ログは stderr / clear_env = no
 # が設定済みなので、拡張モジュールと php.ini の上書きだけ行う。
 
-ENV TZ=Asia/Tokyo
+ARG TZ
+ENV TZ=${TZ}
 
 RUN set -eux; \
     docker-php-ext-install -j"$(nproc)" mysqli pdo_mysql; \

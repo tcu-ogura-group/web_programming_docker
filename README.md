@@ -6,6 +6,7 @@
 
 ```
 compose.yaml
+.env.example               設定値の雛形（cp して .env を作る）
 Dockerfile.origin          元の単一コンテナ版（参考用・未使用）
 web/  default.conf         nginx の site 設定（元の perl 置換を展開したもの）
       fastcgi-php.conf     Debian の snippets/fastcgi-php.conf 相当
@@ -21,6 +22,7 @@ homes/sspuser/public_html/ ユーザーディレクトリ      -> /home/sspuser/
 ## 使い方
 
 ```sh
+cp .env.example .env             # 初回だけ
 docker compose up -d --build     # 起動（初回はビルド）
 docker compose logs -f web php   # ログ
 docker compose exec php bash     # php コンテナに入る
@@ -32,9 +34,25 @@ docker compose down -v           # 停止 + DB データ削除
 - <http://127.0.0.1:10800/> … `./html`
 - <http://127.0.0.1:10800/~sspuser/> … `./homes/sspuser/public_html`（autoindex 有効）
 
-ポートや認証情報は `.env` で変更する（既定: HTTP 10800 / root:dbpass / DB 名 sspdb）。
 MySQL はホストに公開していない（元の `EXPOSE 22 80`（3306 なし）と同じ方針）。
 必要なら `compose.yaml` の `db.ports` のコメントを外す。
+
+## 設定値
+
+変更できる値はすべて `.env` にある（`.env.example` が雛形。`.env` は git 管理外）。
+compose や Dockerfile 側に既定値は置いていないので、`.env` が唯一の定義場所。
+
+| 変数 | 既定 | 効く先 |
+| --- | --- | --- |
+| `HTTP_BIND` / `HTTP_PORT` | `127.0.0.1` / `10800` | compose の `ports` |
+| `TZ` | `Asia/Tokyo` | 各コンテナの `/etc/localtime` と php の `date.timezone`（`php/conf.d/zz-ssp.ini`） |
+| `NGINX_IMAGE` | `nginx:1.29-alpine` | web の `image` |
+| `PHP_IMAGE` / `MYSQL_IMAGE` | `php:8.5-fpm` / `mysql:8.4` | php / db の Dockerfile の `FROM`（build arg） |
+| `MYSQL_ROOT_PASSWORD` / `MYSQL_DATABASE` | `dbpass` / `sspdb` | mysql の初期化、php の `DB_PASSWORD` / `DB_NAME` |
+| `DB_HOST` / `DB_USER` | `db` / `root` | php の環境変数（`html/index.php` が `getenv` で読む） |
+
+`php/conf.d/zz-ssp.ini` の `${TZ}` は php 起動時にプロセスの環境変数で展開される。
+nginx の `default.conf` は環境変数を展開しないので、`server_name` は `_` 固定。
 
 ## 元の単一コンテナ版との対応
 
