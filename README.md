@@ -7,6 +7,7 @@
 
 ```
 compose.yaml
+.env.example               設定値の雛形（cp して .env を作る）
 Dockerfile.origin          元の単一コンテナ版（参考用・未使用）
 web/  Dockerfile           php:8.5-apache + mysqli/pdo_mysql + mod_userdir
       apache/zz-ssp.conf   UserDir 設定（/~user/ を homes/ に向ける）
@@ -21,6 +22,7 @@ homes/                     ユーザーディレクトリ      -> /home
 ## 使い方
 
 ```sh
+cp .env.example .env             # 初回だけ
 docker compose up -d --build     # 起動（初回はビルド）
 docker compose logs -f web       # ログ（apache のアクセス/エラーログ）
 docker compose exec web bash     # web コンテナに入る
@@ -32,8 +34,25 @@ docker compose down -v           # 停止 + DB データ削除
 - <http://127.0.0.1:10800/> … `./html`
 - <http://127.0.0.1:10800/~sspuser/> … `./homes/sspuser/public_html`（autoindex 有効）
 
-ポートや認証情報は `.env` で変更する（既定: HTTP 10800 / root:dbpass / DB 名 sspdb）。
 MySQL はホストに公開していない（元の `EXPOSE 22 80`（3306 なし）と同じ方針）。
+
+## 設定値
+
+変更できる値はすべて `.env` にある（`.env.example` が雛形。`.env` は git 管理外）。
+compose や Dockerfile 側に既定値は置いていないので、`.env` が唯一の定義場所。
+
+| 変数 | 既定 | 効く先 |
+| --- | --- | --- |
+| `HTTP_BIND` / `HTTP_PORT` | `127.0.0.1` / `10800` | compose の `ports` |
+| `SERVER_NAME` | `localhost` | apache の `ServerName`（`web/apache/zz-ssp.conf`） |
+| `TZ` | `Asia/Tokyo` | 両コンテナの `/etc/localtime` と php の `date.timezone`（`web/php/zz-ssp.ini`） |
+| `PHP_IMAGE` / `MYSQL_IMAGE` | `php:8.5-apache` / `mysql:8.4` | 各 Dockerfile の `FROM`（build arg） |
+| `MYSQL_ROOT_PASSWORD` / `MYSQL_DATABASE` | `dbpass` / `sspdb` | mysql の初期化、web の `DB_PASSWORD` / `DB_NAME` |
+| `DB_HOST` / `DB_USER` | `db` / `root` | web の環境変数（`html/index.php` が `getenv` で読む） |
+
+`.ini` と apache conf の `${TZ}` / `${SERVER_NAME}` は、どちらも読み込み時に
+プロセスの環境変数で展開される（コンテナを作り直さなくても `.env` を変えて
+`docker compose up -d` すれば反映される）。
 
 ユーザーを増やすときは **`homes/<name>/public_html` を作るだけ**でよい
 （コンテナの再ビルドも compose の編集も不要。すぐ `/~<name>/` で見える）。

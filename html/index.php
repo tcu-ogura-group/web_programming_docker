@@ -1,8 +1,8 @@
 <?php
-$dsnHost = getenv('DB_HOST') ?: 'db';
-$dbName  = getenv('DB_NAME') ?: 'sspdb';
-$dbUser  = getenv('DB_USER') ?: 'root';
-$dbPass  = getenv('DB_PASSWORD') ?: '';
+$dsnHost = getenv('DB_HOST');
+$dbName  = getenv('DB_NAME');
+$dbUser  = getenv('DB_USER');
+$dbPass  = getenv('DB_PASSWORD');
 
 try {
     $pdo = new PDO(

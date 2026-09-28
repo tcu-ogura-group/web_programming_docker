@@ -1,6 +1,8 @@
-FROM mysql:8.4
+ARG MYSQL_IMAGE
+FROM ${MYSQL_IMAGE}
 
-ENV TZ=Asia/Tokyo
+ARG TZ
+ENV TZ=${TZ}
 
 COPY conf.d/ /etc/mysql/conf.d/
 COPY init/ /docker-entrypoint-initdb.d/

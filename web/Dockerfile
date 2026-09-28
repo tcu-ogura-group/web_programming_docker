@@ -1,16 +1,8 @@
-FROM php:8.5-apache
+ARG PHP_IMAGE
+FROM ${PHP_IMAGE}
 
-# 公式 php:*-apache イメージは mod_php + DocumentRoot /var/www/html が設定済みで、
-#   /etc/apache2/conf-enabled/docker-php.conf
-#     <FilesMatch \.php$> SetHandler application/x-httpd-php
-#     DirectoryIndex index.php index.html
-# まで入っている。ここでやるのは
-#   1. mysqli / pdo_mysql の追加
-#   2. mod_userdir を有効化して /~user/ を使えるようにする
-#   3. php.ini の開発用設定
-# の 3 つだけ。
-
-ENV TZ=Asia/Tokyo
+ARG TZ
+ENV TZ=${TZ}
 
 RUN set -eux; \
     docker-php-ext-install -j"$(nproc)" mysqli pdo_mysql; \
