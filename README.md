@@ -6,6 +6,7 @@
 
 ```
 compose.yaml
+.devcontainer/             GitHub Codespaces 用設定（下記「GitHub Codespaces で使う」）
 .env.example               設定値の雛形（cp して .env を作る）
 Dockerfile.origin          元の単一コンテナ版（参考用・未使用）
 web/  default.conf         nginx の site 設定（元の perl 置換を展開したもの）
@@ -18,6 +19,23 @@ db/   Dockerfile           mysql:8.4 + 設定 + 初期化 SQL
 html/                      ドキュメントルート        -> /var/www/html
 homes/sspuser/public_html/ ユーザーディレクトリ      -> /home/sspuser/public_html
 ```
+
+## GitHub Codespaces で使う（ブラウザだけで開発）
+
+ローカルに Docker を入れなくても、GitHub 上の **Code → Codespaces → Create codespace on main**
+でブラウザ内の VS Code が開き、そのまま開発できる。
+
+- 起動時に `.env` の作成と `docker compose up -d --build` まで自動で実行される
+  （`.devcontainer/setup.sh`）。初回はビルドがあるので数分待つ。
+- ポート 10800 が自動で転送され、「ポート」タブの URL
+  （`https://<codespace名>-10800.app.github.dev/`）でページを開ける。
+  `/~sspuser/` も同じ URL の末尾に付ければ見られる。
+- ターミナルでは下記「使い方」の `docker compose` コマンドがそのまま使える。
+- 編集は VS Code で `html/` や `homes/sspuser/public_html/` を直接触ればよい
+  （bind mount なので即反映）。
+
+Codespace は放置すると自動停止する（データは残る）。再開すると
+コンテナも自動で立ち上がる。不要になったら Codespaces の一覧から削除する。
 
 ## 使い方
 

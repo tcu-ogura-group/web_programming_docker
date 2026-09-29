@@ -1,0 +1,23 @@
+{
+	"name": "ssp",
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+	},
+	"postCreateCommand": "sh .devcontainer/setup.sh",
+	"postStartCommand": "docker compose up -d",
+	"forwardPorts": [10800],
+	"portsAttributes": {
+		"10800": {
+			"label": "web (nginx)",
+			"onAutoForward": "openPreview"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"bmewburn.vscode-intelephense-client"
+			]
+		}
+	}
+}
